@@ -2,9 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { FieldErrors } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { callService } from "@/services/serviceRegistry";
+import { joinPaths } from "@/utils/joinPaths";
 import type { JourneyDefinition } from "@/validation/schemaValidation/journey.schema";
 import { buildJourneyFormSchema } from "@/validation/validations";
 import { useJourneyFormStore } from "../store/journeyFormStore";
@@ -28,24 +28,6 @@ type SubmittedPayload = {
   services: Record<string, unknown>;
 };
 
-function joinPaths(base: string, path: string) {
-  const normalizedBase = base.trim().replace(/\/+$/, "");
-  const normalizedPath = path.trim().replace(/^\/+/, "");
-  if (!normalizedBase) return normalizedPath ? `/${normalizedPath}` : "/";
-  if (!normalizedPath) return normalizedBase;
-  return `${normalizedBase}/${normalizedPath}`;
-}
-
-function extractErrorMessages(errors: FieldErrors<FormValues>) {
-  const out: Record<string, string> = {};
-  for (const [key, value] of Object.entries(errors)) {
-    if (!value) continue;
-    const message = (value as { message?: unknown }).message;
-    if (typeof message === "string" && message.length > 0) out[key] = message;
-  }
-  return out;
-}
-
 export function JourneyRunner({ journey }: JourneyRunnerProps) {
   const steps = journey.steps;
   const { schema, stepFields } = useMemo(
@@ -53,10 +35,12 @@ export function JourneyRunner({ journey }: JourneyRunnerProps) {
     [journey],
   );
   const {
+    control,
     register,
     handleSubmit,
     trigger,
     getValues,
+    getFieldState,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -165,7 +149,14 @@ export function JourneyRunner({ journey }: JourneyRunnerProps) {
     const fields = stepFields[currentStep.id] ?? [];
     const ok = fields.length === 0 ? true : await trigger(fields);
     if (!ok) {
-      setError(extractErrorMessages(errors));
+      const fieldErrors: Record<string, string> = {};
+      for (const field of fields) {
+        const message = getFieldState(field).error?.message;
+        if (typeof message === "string" && message.length > 0) {
+          fieldErrors[field] = message;
+        }
+      }
+      setError(fieldErrors);
       return;
     }
 
@@ -184,7 +175,14 @@ export function JourneyRunner({ journey }: JourneyRunnerProps) {
     const fields = stepFields[currentStep.id] ?? [];
     const ok = fields.length === 0 ? true : await trigger(fields);
     if (!ok) {
-      setError(extractErrorMessages(errors));
+      const fieldErrors: Record<string, string> = {};
+      for (const field of fields) {
+        const message = getFieldState(field).error?.message;
+        if (typeof message === "string" && message.length > 0) {
+          fieldErrors[field] = message;
+        }
+      }
+      setError(fieldErrors);
       return;
     }
 
@@ -213,7 +211,14 @@ export function JourneyRunner({ journey }: JourneyRunnerProps) {
     const fields = stepFields[currentStep.id] ?? [];
     const ok = fields.length === 0 ? true : await trigger(fields);
     if (!ok) {
-      setError(extractErrorMessages(errors));
+      const fieldErrors: Record<string, string> = {};
+      for (const field of fields) {
+        const message = getFieldState(field).error?.message;
+        if (typeof message === "string" && message.length > 0) {
+          fieldErrors[field] = message;
+        }
+      }
+      setError(fieldErrors);
       return;
     }
 
@@ -276,9 +281,11 @@ export function JourneyRunner({ journey }: JourneyRunnerProps) {
           <div key={element.id}>
             {renderJourneyElement(element, {
               register,
+              control,
               errors,
               navigateToStepSlug,
               callService: callServiceAndNavigate,
+              bussines,
             })}
           </div>
         ))}

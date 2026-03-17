@@ -1,0 +1,200 @@
+.link {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xl);
+  padding: 0 var(--font-size-3xl);
+  border-radius: 4px;
+  line-height: 2rem;
+  letter-spacing: 0.4px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--font-size-3xl);
+  flex-direction: row;
+  text-align: center;
+
+  &.--small {
+    padding: 8px 6px;
+  }
+
+  &.--large {
+    padding: 10px;
+  }
+
+  &.--contain {
+    width: max-content;
+  }
+
+  &.--fluid {
+    width: 100%;
+  }
+
+  .btn__loader {
+    border: 3px solid currentColor;
+    border-bottom-color: transparent;
+  }
+}
+
+$variants: (
+  insurance: (
+    primary: (
+      bg: var(--color-brand-insurance-900),
+      hover: var(--color-brand-insurance-700),
+      active: var(--color-brand-insurance-800),
+      text: var(--color-neutral-0),
+    ),
+    secondary: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-brand-insurance-100),
+      active: var(--color-brand-insurance-200),
+      text: var(--color-brand-insurance-900),
+      border: var(--color-brand-insurance-900),
+    ),
+    ghost: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-brand-insurance-100),
+      active: var(--color-brand-insurance-200),
+      text: var(--color-brand-insurance-900),
+      border: var(--color-alpha-0),
+    ),
+  ),
+  banking: (
+    primary: (
+      bg: var(--color-brand-banking-900),
+      hover: var(--color-brand-banking-700),
+      active: var(--color-brand-banking-800),
+      text: var(--color-neutral-0),
+    ),
+    secondary: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-brand-banking-100),
+      active: var(--color-brand-banking-200),
+      text: var(--color-brand-banking-900),
+      border: var(--color-brand-banking-900),
+    ),
+    ghost: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-brand-banking-100),
+      active: var(--color-brand-banking-200),
+      text: var(--color-brand-banking-900),
+      border: var(--color-alpha-0),
+    ),
+  ),
+  health: (
+    primary: (
+      bg: var(--color-brand-health-900),
+      hover: var(--color-brand-health-700),
+      active: var(--color-brand-health-800),
+      text: var(--color-neutral-0),
+    ),
+    secondary: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-brand-health-100),
+      active: var(--color-brand-health-200),
+      text: var(--color-brand-health-900),
+      border: var(--color-brand-health-900),
+    ),
+    ghost: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-brand-health-100),
+      active: var(--color-brand-health-200),
+      text: var(--color-brand-health-900),
+      border: var(--color-alpha-0),
+    ),
+  ),
+  danger: (
+    primary: (
+      bg: var(--color-accent-red-900),
+      hover: var(--color-accent-red-900),
+      active: var(--color-accent-red-800),
+      text: var(--color-neutral-0),
+    ),
+    secondary: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-accent-red-500),
+      active: var(--color-accent-red-700),
+      text: var(--color-accent-red-900),
+      border: var(--color-accent-red-900),
+    ),
+    ghost: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-accent-red-500),
+      active: var(--color-accent-red-700),
+      text: var(--color-accent-red-900),
+      border: var(--color-alpha-0),
+    ),
+  ),
+  negative: (
+    primary: (
+      bg: var(--color-neutral-0),
+      hover: var(--color-neutral-0),
+      active: var(--color-neutral-0),
+      text: var(--color-brand-insurance-900),
+    ),
+    secondary: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-alpha-30),
+      active: var(--color-alpha-50),
+      text: var(--color-neutral-0),
+      border: var(--color-neutral-0),
+    ),
+    ghost: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-alpha-70),
+      active: var(--color-alpha-50),
+      text: var(--color-neutral-0),
+      border: var(--color-alpha-0),
+    ),
+  ),
+  disabled: (
+    primary: (
+      bg: var(--color-neutral-200),
+      hover: var(--color-neutral-300),
+      active: var(--color-neutral-300),
+      text: var(--color-neutral-500),
+    ),
+    secondary: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-alpha-30),
+      active: var(--color-alpha-50),
+      text: var(--color-neutral-500),
+      border: var(--color-neutral-500),
+    ),
+    ghost: (
+      bg: var(--color-alpha-0),
+      hover: var(--color-alpha-70),
+      active: var(--color-alpha-50),
+      text: var(--color-neutral-500),
+      border: var(--color-alpha-0),
+    ),
+  ),
+);
+
+@each $variant, $styles in $variants {
+  .link.--#{$variant} {
+    @each $style, $props in $styles {
+      &-#{$style} {
+        color: map-get($props, text);
+        background-color: map-get($props, bg);
+        border-color: map-get($props, border);
+
+        .link__loader {
+          border: 3px solid map-get($props, text);
+          border-bottom-color: transparent;
+        }
+
+        &:hover {
+          background-color: map-get($props, hover);
+        }
+
+        &:active {
+          background-color: map-get($props, active);
+        }
+      }
+    }
+  }
+}

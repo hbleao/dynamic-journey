@@ -1,6 +1,6 @@
 "use client";
 
-import type { FieldErrors, UseFormRegister } from "react-hook-form";
+import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
 import type { JourneyDefinition } from "@/validation/schemaValidation/journey.schema";
 import { CheckboxElement } from "./elements/CheckboxElement";
 import { CpfInputElement } from "./elements/CpfInputElement";
@@ -21,9 +21,11 @@ export type NavigationElementType = Extract<
 
 export type ElementRenderContext = {
   register: UseFormRegister<FormValues>;
+  control: Control<FormValues>;
   errors: FieldErrors<FormValues>;
   navigateToStepSlug: (stepSlug: string) => void;
   callService: (service: string, targetStepOnSuccess: string) => void;
+  bussines: Record<string, unknown>;
 };
 
 export function renderJourneyElement(
@@ -39,23 +41,11 @@ export function renderJourneyElement(
   }
 
   if (element.type === "TEXT_INPUT") {
-    return (
-      <TextInputElement
-        element={element}
-        register={ctx.register}
-        errors={ctx.errors}
-      />
-    );
+    return <TextInputElement element={element} control={ctx.control} />;
   }
 
   if (element.type === "CPF_INPUT") {
-    return (
-      <CpfInputElement
-        element={element}
-        register={ctx.register}
-        errors={ctx.errors}
-      />
-    );
+    return <CpfInputElement element={element} control={ctx.control} />;
   }
 
   if (element.type === "RADIO") {
@@ -104,6 +94,7 @@ export function renderJourneyElement(
       <NavigationElement
         element={element}
         onNavigate={ctx.navigateToStepSlug}
+        bussines={ctx.bussines}
       />
     );
   }

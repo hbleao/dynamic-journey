@@ -1,0 +1,75 @@
+.typography {
+  $variants: (
+    title1: (font: var(--font-family-secondary),
+      size: var(--font-size-7xl),
+      line: 4.4rem,
+      md-size: var(--font-size-9xl),
+      md-line: 6rem,
+    ),
+    title2: (font: var(--font-family-secondary),
+      size: var(--font-size-6xl),
+      line: 4rem,
+      md-size: var(--font-size-8xl),
+      md-line: 5.2rem,
+    ),
+    title3: (font: var(--font-family-secondary),
+      size: var(--font-size-5xl),
+      line: 3.6rem,
+      md-size: var(--font-size-6xl),
+      md-line: 4.4rem,
+    ),
+    title4: (font: var(--font-family-secondary),
+      size: var(--font-size-4xl),
+      line: 3.2rem,
+      md-size: var(--font-size-5xl),
+      md-line: 3.6rem,
+    ),
+    title5: (font: var(--font-family-secondary),
+      size: var(--font-size-3xl),
+      line: 2.8rem,
+    ),
+    title6: (font: var(--font-family-secondary),
+      size: var(--font-size-xl),
+      line: 2.4rem,
+    ),
+    body1: (font: var(--font-family-primary),
+      size: var(--font-size-xl),
+      line: 2.4rem,
+    ),
+    body2: (font: var(--font-family-primary),
+      size: var(--font-size-lg),
+      line: 2rem,
+    ),
+    caption: (font: var(--font-family-primary),
+      size: var(--font-size-md),
+      line: 1rem,
+    ),
+    label: (font: var(--font-family-primary),
+      size: var(--font-size-sm),
+      line: 1.4rem,
+    ),
+    overline: (font: var(--font-family-primary),
+      size: var(--font-size-5xl),
+      line: 2rem,
+    ),
+    button: (font: var(--font-family-primary),
+      size: var(--font-size-md),
+      line: 2rem,
+    ),
+  );
+
+@each $name, $style in $variants {
+  &.--#{$name} {
+    font-family: map-get($style, font);
+    font-size: map-get($style, size);
+    line-height: map-get($style, line);
+
+    @if map-has-key($style, md-size) {
+      @media (min-width: var(--breakpoint-lg)) {
+        font-size: map-get($style, md-size);
+        line-height: map-get($style, md-line);
+      }
+    }
+  }
+}
+}
