@@ -1,12 +1,87 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg0: #0b1020;
+  --bg1: #0d1b2a;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface2: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.14);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.7);
+  --muted2: rgba(255, 255, 255, 0.55);
+  --brand: #7c3aed;
+  --brand2: #22c55e;
+  --danger: #ef4444;
+  --radius: 18px;
+  --radius-md: 12px;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  --shadow2: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --ring: 0 0 0 4px rgba(124, 58, 237, 0.25);
+
+  --breakpoint-lg: 1024px;
+  --font-family-primary: var(--font-geist-sans);
+  --font-family-secondary: var(--font-geist-sans);
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 28px;
+  --font-size-5xl: 32px;
+  --font-size-6xl: 36px;
+  --font-size-7xl: 40px;
+  --font-size-8xl: 44px;
+  --font-size-9xl: 52px;
+
+  --color-alpha-0: rgba(255, 255, 255, 0);
+  --color-alpha-30: rgba(255, 255, 255, 0.14);
+  --color-alpha-50: rgba(255, 255, 255, 0.22);
+
+  --color-neutral-0: #ffffff;
+  --color-neutral-100: rgba(255, 255, 255, 0.08);
+  --color-neutral-200: rgba(255, 255, 255, 0.12);
+  --color-neutral-300: rgba(255, 255, 255, 0.16);
+  --color-neutral-400: rgba(255, 255, 255, 0.22);
+  --color-neutral-500: rgba(255, 255, 255, 0.58);
+  --color-neutral-550: rgba(255, 255, 255, 0.64);
+  --color-neutral-700: rgba(255, 255, 255, 0.78);
+  --color-neutral-800: rgba(255, 255, 255, 0.9);
+  --color-neutral-900: #0b1020;
+
+  --color-brand-insurance-100: rgba(124, 58, 237, 0.12);
+  --color-brand-insurance-200: rgba(124, 58, 237, 0.18);
+  --color-brand-insurance-550: #8b5cf6;
+  --color-brand-insurance-700: #6d28d9;
+  --color-brand-insurance-800: #5b21b6;
+  --color-brand-insurance-900: var(--brand);
+
+  --color-brand-banking-100: rgba(59, 130, 246, 0.12);
+  --color-brand-banking-200: rgba(59, 130, 246, 0.18);
+  --color-brand-banking-700: #1d4ed8;
+  --color-brand-banking-800: #1e40af;
+  --color-brand-banking-900: #2563eb;
+
+  --color-brand-health-100: rgba(34, 197, 94, 0.12);
+  --color-brand-health-200: rgba(34, 197, 94, 0.18);
+  --color-brand-health-700: #16a34a;
+  --color-brand-health-800: #15803d;
+  --color-brand-health-900: var(--brand2);
+
+  --color-accent-red-500: #ef4444;
+  --color-accent-red-700: #b91c1c;
+  --color-accent-red-800: #991b1b;
+  --color-accent-red-900: #7f1d1d;
+
+  --color-accent-green-700: #16a34a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg0: #0b1020;
+    --bg1: #0d1b2a;
   }
 }
 
@@ -17,9 +92,33 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(
+      1200px 800px at 20% 20%,
+      rgba(124, 58, 237, 0.35),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 700px at 80% 30%,
+      rgba(34, 197, 94, 0.24),
+      transparent 55%
+    ),
+    radial-gradient(
+      1000px 700px at 50% 100%,
+      rgba(59, 130, 246, 0.18),
+      transparent 55%
+    ), linear-gradient(180deg, var(--bg0), var(--bg1));
+  font-family:
+    var(--font-geist-sans),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    "Apple Color Emoji",
+    "Segoe UI Emoji";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -39,4 +138,14 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+::selection {
+  background: rgba(124, 58, 237, 0.35);
+}
+
+pre {
+  font-family:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
 }

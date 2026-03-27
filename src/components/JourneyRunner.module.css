@@ -1,0 +1,184 @@
+.wrap {
+  width: 100%;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.09),
+    rgba(255, 255, 255, 0.06)
+  );
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      700px 380px at 20% -10%,
+      rgba(124, 58, 237, 0.25),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 380px at 80% 110%,
+      rgba(34, 197, 94, 0.18),
+      transparent 62%
+    );
+}
+
+.inner {
+  position: relative;
+  padding: 18px 18px 16px;
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 16px;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kicker {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.stepName {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+}
+
+.progress {
+  display: flex;
+  gap: 6px;
+  padding-top: 3px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dotActive {
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.95),
+    rgba(34, 197, 94, 0.85)
+  );
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.14);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 16px;
+}
+
+.actionsRight {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.errorBox {
+  border-radius: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  padding: 12px 12px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.errorTitle {
+  font-size: 12px;
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+
+.errorList {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.code {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 12px;
+  overflow: auto;
+  max-height: 340px;
+}
+
+.debug {
+  margin-top: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px;
+}
+
+.debugSummary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty {
+  padding: 18px;
+  border-radius: var(--radius);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+@media (max-width: 600px) {
+  .inner {
+    padding: 16px 14px 14px;
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .actionsRight {
+    justify-content: flex-end;
+  }
+}

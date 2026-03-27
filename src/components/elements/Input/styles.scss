@@ -20,14 +20,15 @@
       color: var(--color-neutral-500);
       font-weight: var(--font-weight-medium);
       font-size: var(--font-size-sm);
-      top: 0.6rem;
+      top: 0.65rem;
     }
   }
 
   &.--focused {
     .input__box {
-      border-color: var(--color-brand-insurance-550) !important;
-      background-color: rgba(0, 0, 0, 0.02);
+      border-color: var(--color-brand-insurance-900) !important;
+      box-shadow: var(--ring);
+      background-color: rgba(255, 255, 255, 0.06);
     }
   }
 
@@ -35,15 +36,18 @@
   &.--outlined .input__box {
     border: 1px solid var(--color-neutral-400);
     border-radius: var(--radius-md);
-    background-color: transparent;
-    transition: border-color 0.2s ease;
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(10px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease,
+      background-color 0.2s ease;
   }
 
   &.--disabled {
     pointer-events: none;
 
     .input__box {
-      background-color: var(--color-neutral-100) !important;
+      background-color: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.14) !important;
     }
 
     .input__label {
@@ -65,6 +69,7 @@
   &.--success {
     .input__box {
       border: 1px solid var(--color-accent-green-700) !important;
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18);
     }
 
     .input__label {
@@ -75,6 +80,7 @@
   &.--error {
     .input__box {
       border-color: var(--color-accent-red-500);
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.16);
     }
 
     .input__label {
@@ -93,7 +99,7 @@
 
 .input__box {
   position: relative;
-  height: 52px;
+  height: 56px;
   display: flex;
   align-items: flex-end;
   padding: 1.2rem;
@@ -103,7 +109,7 @@
   pointer-events: none;
   position: absolute;
   left: 1.2rem;
-  top: 1.6rem;
+  top: 1.7rem;
   font-family: var(--font-family-primary);
   font-size: var(--font-size-lg);
   color: var(--color-neutral-700);
@@ -120,11 +126,16 @@
   color: var(--color-neutral-800);
   outline: none;
   transition: all 0.3s ease;
+  caret-color: var(--color-brand-insurance-900);
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+  }
 }
 
 .input__helper-text,
 .input__error-message {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-md);
   font-family: var(--font-family-primary);
   margin-top: 0.4rem;
   margin-left: 1.2rem;
@@ -132,7 +143,7 @@
 }
 
 .input__helper-text {
-  color: var(--color-neutral-700);
+  color: var(--color-neutral-550);
 }
 
 .input__error-message {
