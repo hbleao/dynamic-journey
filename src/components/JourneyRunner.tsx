@@ -1,320 +1,154 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { callService } from "@/services/serviceRegistry";
-import { joinPaths } from "@/utils/joinPaths";
+import { Button } from "@/components/elements/Button";
 import type { JourneyDefinition } from "@/validation/schemaValidation/journey.schema";
-import { buildJourneyFormSchema } from "@/validation/validations";
-import { useJourneyFormStore } from "../store/journeyFormStore";
-import {
-  type NavigationElementType,
-  renderJourneyElement,
-} from "./elementRegistry";
-import type { FormValues } from "./elements/TextInputElement";
+import { renderJourneyElement } from "./elementRegistry";
+import styles from "./JourneyRunner.module.css";
+import { useJourneyRunnerController } from "./journeyRunner/useJourneyRunnerController";
 
-type JourneyStep = JourneyDefinition["steps"][number];
-type JourneyElement = JourneyDefinition["steps"][number]["elements"][number];
+export function JourneyRunner({ journey }: { journey: JourneyDefinition }) {
+  const c = useJourneyRunnerController(journey);
 
-type JourneyRunnerProps = {
-  journey: JourneyDefinition;
-};
-
-type SubmittedPayload = {
-  fieds: FormValues;
-  error: Record<string, unknown>;
-  bussines: Record<string, unknown>;
-  services: Record<string, unknown>;
-};
-
-export function JourneyRunner({ journey }: JourneyRunnerProps) {
-  const steps = journey.steps;
-  const { schema, stepFields } = useMemo(
-    () => buildJourneyFormSchema(journey),
-    [journey],
-  );
-  const {
-    control,
-    register,
-    handleSubmit,
-    trigger,
-    getValues,
-    getFieldState,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: useRef(useJourneyFormStore.getState().fieds).current,
-    mode: "onSubmit",
-  });
-  const [submitted, setSubmitted] = useState<SubmittedPayload | null>(null);
-  const stepCount = steps.length;
-  const stepSlug = useJourneyFormStore((s) => s.stepSlug);
-  const setStepSlug = useJourneyFormStore((s) => s.setStepSlug);
-  const setFieds = useJourneyFormStore((s) => s.setFieds);
-  const setError = useJourneyFormStore((s) => s.setError);
-  const mergeBussines = useJourneyFormStore((s) => s.mergeBussines);
-  const mergeServices = useJourneyFormStore((s) => s.mergeServices);
-  const bussines = useJourneyFormStore((s) => s.bussines);
-  const storedError = useJourneyFormStore((s) => s.error);
-  const services = useJourneyFormStore((s) => s.services);
-
-  const stepSlugToIndex = useMemo(() => {
-    const map = new Map<string, number>();
-    for (let i = 0; i < steps.length; i += 1) {
-      map.set(steps[i].slug, i);
-    }
-    return map;
-  }, [steps]);
-
-  const currentStep: JourneyStep | null = useMemo(() => {
-    if (stepCount === 0) return null;
-    const resolved =
-      stepSlug && stepSlugToIndex.has(stepSlug)
-        ? steps[stepSlugToIndex.get(stepSlug) as number]
-        : steps[0];
-    return resolved ?? null;
-  }, [stepCount, stepSlug, stepSlugToIndex, steps]);
-
-  const currentStepIndex = useMemo(() => {
-    if (!currentStep) return 0;
-    return stepSlugToIndex.get(currentStep.slug) ?? 0;
-  }, [currentStep, stepSlugToIndex]);
-
-  const sortedElements = useMemo<JourneyElement[]>(
-    () => (currentStep ? currentStep.elements : []),
-    [currentStep],
-  );
-
-  const navigationElements = useMemo<NavigationElementType[]>(
-    () =>
-      sortedElements.filter(
-        (e): e is NavigationElementType => e.type === "NAVIGATION",
-      ),
-    [sortedElements],
-  );
-
-  function goToStepSlug(stepSlug: string) {
-    if (!stepSlugToIndex.has(stepSlug)) return;
-    setStepSlug(stepSlug);
-  }
-
-  function redirectTo(urlOrSlug: string) {
-    const baseUrl =
-      typeof bussines.base_url === "string" ? bussines.base_url.trim() : "";
-    const fullUrl = baseUrl ? joinPaths(baseUrl, urlOrSlug) : urlOrSlug;
-
-    if (!fullUrl) return;
-
-    if (/^https?:\/\//i.test(fullUrl)) {
-      try {
-        const target = new URL(fullUrl);
-        if (target.origin !== window.location.origin) {
-          window.location.href = fullUrl;
-          return;
-        }
-        window.history.pushState(null, "", target.pathname + target.search);
-        return;
-      } catch {
-        return;
-      }
-    }
-
-    const path = fullUrl.startsWith("/") ? fullUrl : `/${fullUrl}`;
-    window.history.pushState(null, "", path);
-  }
-
-  useEffect(() => {
-    if (stepCount === 0) return;
-    if (!stepSlug || !stepSlugToIndex.has(stepSlug)) {
-      setStepSlug(steps[0].slug);
-    }
-  }, [stepCount, stepSlug, stepSlugToIndex, steps, setStepSlug]);
-
-  useEffect(() => {
-    mergeBussines({
-      journeyId: journey.id,
-      journeySlug: journey.slug,
-      stepSlug: currentStep?.slug ?? "",
-    });
-  }, [journey.id, journey.slug, currentStep?.slug, mergeBussines]);
-
-  async function navigateToStepSlug(stepSlug: string) {
-    if (!currentStep) return;
-    if (!stepSlug) {
-      await goNext();
-      return;
-    }
-
-    const fields = stepFields[currentStep.id] ?? [];
-    const ok = fields.length === 0 ? true : await trigger(fields);
-    if (!ok) {
-      const fieldErrors: Record<string, string> = {};
-      for (const field of fields) {
-        const message = getFieldState(field).error?.message;
-        if (typeof message === "string" && message.length > 0) {
-          fieldErrors[field] = message;
-        }
-      }
-      setError(fieldErrors);
-      return;
-    }
-
-    setError({});
-    setFieds(getValues());
-    goToStepSlug(stepSlug);
-    redirectTo(stepSlug);
-  }
-
-  async function callServiceAndNavigate(
-    serviceName: string,
-    targetStepOnSuccess: string,
-  ) {
-    if (!currentStep) return;
-
-    const fields = stepFields[currentStep.id] ?? [];
-    const ok = fields.length === 0 ? true : await trigger(fields);
-    if (!ok) {
-      const fieldErrors: Record<string, string> = {};
-      for (const field of fields) {
-        const message = getFieldState(field).error?.message;
-        if (typeof message === "string" && message.length > 0) {
-          fieldErrors[field] = message;
-        }
-      }
-      setError(fieldErrors);
-      return;
-    }
-
-    const input = getValues();
-    setError({});
-    setFieds(input);
-
-    const result = await callService(serviceName, {
-      fieds: input,
-      bussines,
-    });
-
-    mergeServices({ [serviceName]: result });
-
-    if (!result.success) {
-      setError({ service: result.error });
-      return;
-    }
-
-    goToStepSlug(targetStepOnSuccess);
-    redirectTo(targetStepOnSuccess);
-  }
-
-  async function goNext() {
-    if (!currentStep) return;
-    const fields = stepFields[currentStep.id] ?? [];
-    const ok = fields.length === 0 ? true : await trigger(fields);
-    if (!ok) {
-      const fieldErrors: Record<string, string> = {};
-      for (const field of fields) {
-        const message = getFieldState(field).error?.message;
-        if (typeof message === "string" && message.length > 0) {
-          fieldErrors[field] = message;
-        }
-      }
-      setError(fieldErrors);
-      return;
-    }
-
-    setError({});
-    setFieds(getValues());
-
-    const nextStep = steps[currentStepIndex + 1];
-    if (nextStep) {
-      setStepSlug(nextStep.slug);
-      redirectTo(nextStep.slug);
-      return;
-    }
-
-    handleSubmit((values) => {
-      setFieds(values);
-      setError({});
-      setSubmitted({ fieds: values, error: {}, bussines, services });
-    })();
-  }
-
-  function goPrev() {
-    if (!currentStep) return;
-    const backStepSlug = currentStep.backStepSlug?.trim() ?? "";
-    if (!backStepSlug) return;
-    setFieds(getValues());
-    if (backStepSlug === "/") {
-      setStepSlug(steps[0].slug ?? "");
-      redirectTo("/");
-      return;
-    }
-    goToStepSlug(backStepSlug);
-    redirectTo(backStepSlug);
-  }
-
-  if (!currentStep) {
-    return <div>Jornada sem steps.</div>;
-  }
-
-  if (submitted) {
+  if (!c.currentStep) {
     return (
-      <div>
-        <h2>Resultado</h2>
-        <pre>{JSON.stringify(submitted, null, 2)}</pre>
-        <button type="button" onClick={() => setSubmitted(null)}>
-          Voltar
-        </button>
+      <div className={styles.wrap}>
+        <div className={styles.empty}>Jornada sem steps.</div>
+      </div>
+    );
+  }
+
+  if (c.submitted) {
+    return (
+      <div className={styles.wrap}>
+        <div className={styles.card}>
+          <div className={styles.inner}>
+            <div className={styles.result}>
+              <div className={styles.title}>
+                <div className={styles.kicker}>Resultado</div>
+                <div className={styles.stepName}>Payload final</div>
+              </div>
+              <pre className={styles.code}>
+                {JSON.stringify(c.submitted, null, 2)}
+              </pre>
+              <div className={styles.actions}>
+                <div />
+                <div className={styles.actionsRight}>
+                  <Button
+                    type="button"
+                    styles="secondary"
+                    onClick={() => c.setSubmitted(null)}
+                  >
+                    Voltar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          goNext();
-        }}
-      >
-        {sortedElements.map((element) => (
-          <div key={element.id}>
-            {renderJourneyElement(element, {
-              register,
-              control,
-              errors,
-              navigateToStepSlug,
-              callService: callServiceAndNavigate,
-              bussines,
-            })}
+    <div className={styles.wrap}>
+      <div className={styles.card}>
+        <div className={styles.inner}>
+          <div className={styles.top}>
+            <div className={styles.title}>
+              <div className={styles.kicker}>
+                Step {c.currentStepIndex + 1} de {c.stepCount}
+              </div>
+              <div className={styles.stepName}>{c.currentStep.name}</div>
+            </div>
+            <div className={styles.progress} aria-hidden="true">
+              {c.steps.map((s, i) => (
+                <span
+                  key={s.id}
+                  className={`${styles.dot} ${
+                    i === c.currentStepIndex ? styles.dotActive : ""
+                  }`}
+                />
+              ))}
+            </div>
           </div>
-        ))}
-        {navigationElements.length === 0 ? (
-          <div>
-            <button
-              type="button"
-              onClick={goPrev}
-              disabled={!currentStep.backStepSlug}
-            >
-              Anterior
-            </button>
-            <button type="button" onClick={goNext}>
-              {currentStepIndex === stepCount - 1 ? "Enviar" : "Próximo"}
-            </button>
-          </div>
-        ) : null}
-      </form>
 
-      <details>
-        <summary>Debug (valores atuais)</summary>
-        <pre>
-          {JSON.stringify(
-            { fieds: getValues(), error: storedError, bussines, services },
-            null,
-            2,
-          )}
-        </pre>
-      </details>
+          {c.storedErrorEntries.length > 0 ? (
+            <div className={styles.errorBox}>
+              <div className={styles.errorTitle}>
+                Revise os campos antes de continuar
+              </div>
+              <ul className={styles.errorList}>
+                {c.storedErrorEntries.map(([key, message]) => (
+                  <li key={key}>
+                    {key}: {message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              c.goNext();
+            }}
+          >
+            <div className={styles.body}>
+              {c.sortedElements.map((element) => (
+                <div key={element.id}>
+                  {renderJourneyElement(element, {
+                    register: c.register,
+                    control: c.control,
+                    errors: c.formState.errors,
+                    navigateToStepSlug: c.navigateToStepSlug,
+                    callService: c.callServiceAndNavigate,
+                    bussines: c.bussines,
+                    canProceed: c.canProceed,
+                  })}
+                </div>
+              ))}
+            </div>
+
+            {c.navigationElements.length === 0 ? (
+              <div className={styles.actions}>
+                <Button
+                  type="button"
+                  styles="ghost"
+                  disabled={!c.currentStep.backStepSlug}
+                  onClick={c.goPrev}
+                >
+                  Anterior
+                </Button>
+                <div className={styles.actionsRight}>
+                  <Button type="button" onClick={c.goNext} width="fluid">
+                    {c.currentStepIndex === c.stepCount - 1
+                      ? "Enviar"
+                      : "Próximo"}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </form>
+
+          <details className={styles.debug}>
+            <summary className={styles.debugSummary}>
+              Debug (valores atuais)
+            </summary>
+            <pre className={styles.code}>
+              {JSON.stringify(
+                {
+                  fieds: c.getValues(),
+                  error: c.storedError,
+                  bussines: c.bussines,
+                  services: c.services,
+                },
+                null,
+                2,
+              )}
+            </pre>
+          </details>
+        </div>
+      </div>
     </div>
   );
 }

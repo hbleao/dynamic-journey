@@ -8,11 +8,13 @@ import { requiredTrueBoolean } from "./requiredTrueBoolean";
 import type { StepFields } from "./types";
 
 export function buildJourneyFormSchema(journey: JourneyDefinition) {
-  const shape: Record<string, z.ZodTypeAny> = {};
-  const stepFields: StepFields = {};
+  // O buildJourneyFormSchema é uma função que constrói o schema do formState
+  const shape: Record<string, z.ZodTypeAny> = {}; // O shape é um objeto que define a estrutura do formState
+  const stepFields: StepFields = {}; // O stepFields é um objeto que define os campos de cada step
 
   for (const step of journey.steps) {
-    const fields: string[] = [];
+    // Para cada step na journey
+    const fields: string[] = []; // Os campos são os elementos do formState do step
 
     for (const element of step.elements) {
       if (element.type === "TEXT_INPUT") {

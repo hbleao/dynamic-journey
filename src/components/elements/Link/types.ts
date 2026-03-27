@@ -10,7 +10,7 @@ export type LinkProps = any & {
   styles?: Styles;
   width?: "contain" | "fluid";
   variant?: Variant;
-  disabled?: string;
+  disabled?: boolean;
   className?: string;
   href: string;
   children: ReactNode;

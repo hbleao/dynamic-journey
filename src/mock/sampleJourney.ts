@@ -38,7 +38,7 @@ export const sampleJourney = journeySchema.parse({
           config: {
             label: "CPF",
             placeholder: "000.000.000-00",
-            required: false,
+            required: true,
             name: "field_cpf-input_m7oqd4",
           },
         },
@@ -96,6 +96,10 @@ export const sampleJourney = journeySchema.parse({
             placeholder: "Enter text...",
             required: false,
             name: "field_text-input_q45tjl",
+            defaultValueFrom: {
+              service: "eligibility",
+              path: "data.input.fields.field_cpf-input_m7oqd4",
+            },
           },
         },
         {

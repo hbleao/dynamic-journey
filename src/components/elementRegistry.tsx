@@ -26,6 +26,7 @@ export type ElementRenderContext = {
   navigateToStepSlug: (stepSlug: string) => void;
   callService: (service: string, targetStepOnSuccess: string) => void;
   bussines: Record<string, unknown>;
+  canProceed: boolean;
 };
 
 export function renderJourneyElement(
@@ -82,6 +83,7 @@ export function renderJourneyElement(
     return (
       <ServiceCallElement
         element={element}
+        canProceed={ctx.canProceed}
         onCall={(service, targetStepOnSuccess) =>
           ctx.callService(service, targetStepOnSuccess)
         }
@@ -95,6 +97,7 @@ export function renderJourneyElement(
         element={element}
         onNavigate={ctx.navigateToStepSlug}
         bussines={ctx.bussines}
+        canProceed={ctx.canProceed}
       />
     );
   }
