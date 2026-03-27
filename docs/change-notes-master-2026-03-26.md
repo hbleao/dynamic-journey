@@ -1,15 +1,16 @@
 # Change Notes
 
-- Gerado em: 26/03/2026, 21:53:18
+- Gerado em: 26/03/2026, 22:04:02
 - Faixa analisada: `origin/master..HEAD`
-- Total de commits: 3
-- Commits convencionais: 3
+- Total de commits: 4
+- Commits convencionais: 4
 - Commits ignorados: 0
 
 ## Features
 
 - **ui**: moderniza layout da aplicação e dos inputs (`15d8fa8`)
 - **journey**: adiciona bloqueio e prefill nos fluxos (`a2dd147`)
+- **tooling**: move change notes para docs datados (`38d4b6c`)
 
 ## Chores
 

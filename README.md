@@ -33,8 +33,8 @@ npm run lint         # biome check
 npm run format       # biome format
 npm run test         # vitest (watch)
 npm run test:run     # vitest run (CI)
-npm run changenotes  # gera CHANGE_NOTES.md com commits pendentes de push
-npm run changenotes:check  # valida CHANGE_NOTES.md no fluxo de push
+npm run changenotes  # gera arquivo em docs/ com commits pendentes de push
+npm run changenotes:check  # valida o arquivo de change notes no fluxo de push
 ```
 
 ### Scripts úteis quando der erro de heap/memória
@@ -105,12 +105,13 @@ npm run changenotes:check
 
 Comportamento:
 
-- `npm run changenotes`: gera/atualiza o arquivo `CHANGE_NOTES.md`
+- `npm run changenotes`: gera/atualiza o arquivo de change notes dentro de `docs/`
 - `npm run changenotes:stdout`: imprime o conteúdo no terminal
 - `npm run changenotes:check`: usado pelo hook de `pre-push` para gerar o arquivo e bloquear o push se ele mudou
 - Base padrão: upstream da branch atual (`@{upstream}`)
 - Fallbacks: `origin/HEAD` e, por último, `origin/master`
 - O arquivo inclui a **data e hora da geração**
+- O arquivo é salvo em `docs/` com o padrão `change-notes-{branch}-{yyyy-mm-dd}.md`
 - O hook é instalado via `lefthook`
 
 Formato esperado dos commits:

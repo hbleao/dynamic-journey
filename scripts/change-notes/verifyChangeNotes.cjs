@@ -1,5 +1,4 @@
 const fs = require("node:fs");
-const path = require("node:path");
 const { generateChangeNotes } = require("./generateChangeNotes.cjs");
 
 function normalize(content) {
@@ -7,21 +6,22 @@ function normalize(content) {
 }
 
 function main() {
-  const output = path.resolve(process.cwd(), "CHANGE_NOTES.md");
-  const result = generateChangeNotes({ output });
+  const result = generateChangeNotes();
+  const output = result.output;
   const nextContent = `${result.content}\n`;
   const currentContent = fs.existsSync(output)
     ? fs.readFileSync(output, "utf8")
     : "";
 
   if (normalize(currentContent) === normalize(nextContent)) {
-    process.stdout.write("CHANGE_NOTES.md está atualizado.\n");
+    process.stdout.write(`${output} está atualizado.\n`);
     return;
   }
 
+  fs.mkdirSync(require("node:path").dirname(output), { recursive: true });
   fs.writeFileSync(output, nextContent, "utf8");
   process.stderr.write(
-    "CHANGE_NOTES.md foi atualizado. Adicione o arquivo e faça um novo commit antes do push.\n",
+    `${output} foi atualizado. Adicione o arquivo e faça um novo commit antes do push.\n`,
   );
   process.exitCode = 1;
 }

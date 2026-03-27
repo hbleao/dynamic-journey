@@ -41,7 +41,7 @@ function parseArgs(argv) {
   const args = {
     base: undefined,
     head: "HEAD",
-    output: path.resolve(process.cwd(), "CHANGE_NOTES.md"),
+    output: undefined,
     stdout: false,
   };
 
@@ -88,6 +88,41 @@ function getDefaultBaseRef() {
   }
 }
 
+function getCurrentBranchName() {
+  try {
+    return runGit(["rev-parse", "--abbrev-ref", "HEAD"]);
+  } catch {
+    return "head";
+  }
+}
+
+function formatFileDate(date = new Date()) {
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function sanitizeFileSegment(value) {
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "head"
+  );
+}
+
+function resolveDefaultOutputPath(date = new Date()) {
+  const branch = sanitizeFileSegment(getCurrentBranchName());
+  const fileDate = formatFileDate(date);
+  return path.resolve(
+    process.cwd(),
+    "docs",
+    `change-notes-${branch}-${fileDate}.md`,
+  );
+}
+
 function readCommits(range) {
   const raw = runGit([
     "log",
@@ -104,8 +139,34 @@ function readCommits(range) {
     .filter(Boolean)
     .map((entry) => {
       const [hash = "", subject = "", body = ""] = entry.split("\x1f");
-      return { hash, subject, body };
+      return {
+        hash,
+        subject,
+        body,
+        files: readCommitFiles(hash),
+      };
     });
+}
+
+function readCommitFiles(hash) {
+  const raw = runGit(["show", "--format=", "--name-only", hash]);
+  if (!raw) return [];
+  return raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function isChangeNotesFile(file) {
+  return /^docs\/change-notes-.*\.md$/i.test(file);
+}
+
+function isChangeNotesOnlyCommit(commit) {
+  return (
+    Array.isArray(commit.files) &&
+    commit.files.length > 0 &&
+    commit.files.every((file) => isChangeNotesFile(file))
+  );
 }
 
 function parseConventionalCommit(subject, body = "") {
@@ -134,7 +195,11 @@ function buildChangeNotes(commits, context) {
   const ignored = [];
   const breaking = [];
 
-  for (const commit of commits) {
+  const visibleCommits = commits.filter(
+    (commit) => !isChangeNotesOnlyCommit(commit),
+  );
+
+  for (const commit of visibleCommits) {
     const parsed = parseConventionalCommit(commit.subject, commit.body);
     if (!parsed) {
       ignored.push(commit);
@@ -165,12 +230,14 @@ function buildChangeNotes(commits, context) {
   lines.push("");
   lines.push(`- Gerado em: ${context.generatedAt}`);
   lines.push(`- Faixa analisada: \`${context.range}\``);
-  lines.push(`- Total de commits: ${commits.length}`);
-  lines.push(`- Commits convencionais: ${commits.length - ignored.length}`);
+  lines.push(`- Total de commits: ${visibleCommits.length}`);
+  lines.push(
+    `- Commits convencionais: ${visibleCommits.length - ignored.length}`,
+  );
   lines.push(`- Commits ignorados: ${ignored.length}`);
   lines.push("");
 
-  if (commits.length === 0) {
+  if (visibleCommits.length === 0) {
     lines.push("Nenhum commit encontrado na faixa informada.");
     lines.push("");
     return lines.join("\n");
@@ -217,6 +284,7 @@ function buildChangeNotes(commits, context) {
 function generateChangeNotes(options = {}) {
   const base = options.base ?? getDefaultBaseRef();
   const head = options.head ?? "HEAD";
+  const output = options.output ?? resolveDefaultOutputPath();
   const range = `${base}..${head}`;
   const commits = readCommits(range);
   const generatedAt = new Intl.DateTimeFormat("pt-BR", {
@@ -229,6 +297,7 @@ function generateChangeNotes(options = {}) {
     base,
     head,
     range,
+    output,
     generatedAt,
     commits,
     content,
@@ -244,8 +313,9 @@ function main() {
     return;
   }
 
-  fs.writeFileSync(args.output, `${result.content}\n`, "utf8");
-  process.stdout.write(`Change notes gerado em ${args.output}\n`);
+  fs.mkdirSync(path.dirname(result.output), { recursive: true });
+  fs.writeFileSync(result.output, `${result.content}\n`, "utf8");
+  process.stdout.write(`Change notes gerado em ${result.output}\n`);
 }
 
 if (require.main === module) {
@@ -263,9 +333,16 @@ if (require.main === module) {
 
 module.exports = {
   buildChangeNotes,
+  formatFileDate,
   generateChangeNotes,
   getDefaultBaseRef,
+  getCurrentBranchName,
+  isChangeNotesOnlyCommit,
+  isChangeNotesFile,
   parseConventionalCommit,
   parseArgs,
+  readCommitFiles,
   readCommits,
+  resolveDefaultOutputPath,
+  sanitizeFileSegment,
 };
