@@ -4,12 +4,20 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:webpack": "NEXT_DISABLE_TURBOPACK=1 next dev",
+    "dev:mem": "NODE_OPTIONS=--max-old-space-size=4096 next dev",
     "build": "next build",
+    "build:mem": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:run:mem": "NODE_OPTIONS=--max-old-space-size=4096 vitest run",
+    "changenotes": "node scripts/change-notes/generateChangeNotes.cjs",
+    "changenotes:stdout": "node scripts/change-notes/generateChangeNotes.cjs --stdout",
+    "changenotes:check": "node scripts/change-notes/verifyChangeNotes.cjs",
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -30,6 +38,7 @@
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
     "jsdom": "^29.0.0",
+    "lefthook": "^2.1.4",
     "sass": "^1.98.0",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
