@@ -8,14 +8,13 @@ import { useJourneySteps } from "./useJourneySteps";
 
 export type { GoNextOptions } from "./useJourneyNavigation";
 
-export function useJourneyRunnerController(journey: JourneyDefinition) {
+export function useJourneyController(journey: JourneyDefinition) {
   const steps = useJourneySteps(journey);
   const form = useJourneyForm(journey, steps.currentStep);
   const navigation = useJourneyNavigation({
     steps: steps.steps,
     currentStep: steps.currentStep,
     currentStepIndex: steps.currentStepIndex,
-    stepSlugToIndex: steps.stepSlugToIndex,
     currentStepFields: form.currentStepFields,
     getValues: form.getValues,
     handleSubmit: form.handleSubmit,

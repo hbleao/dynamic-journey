@@ -8,6 +8,7 @@ import type {
   UseFormTrigger,
 } from "react-hook-form";
 import type { FormValues } from "@/components/elements/TextInputElement";
+import { dispatchNavigate } from "@/hooks/useCurrentPathname";
 import { callService } from "@/services/serviceRegistry";
 import { useJourneyStore } from "@/store/useJourneyStore";
 import { joinPaths } from "@/utils/joinPaths";
@@ -31,7 +32,6 @@ type UseJourneyNavigationParams = {
   steps: JourneyDefinition["steps"];
   currentStep: JourneyStep | null;
   currentStepIndex: number;
-  stepSlugToIndex: Map<string, number>;
   currentStepFields: string[];
   getValues: UseFormGetValues<FormValues>;
   handleSubmit: UseFormHandleSubmit<FormValues>;
@@ -43,21 +43,14 @@ export function useJourneyNavigation({
   steps,
   currentStep,
   currentStepIndex,
-  stepSlugToIndex,
   currentStepFields,
   getValues,
   handleSubmit,
   trigger,
   getFieldState,
 }: UseJourneyNavigationParams) {
-  const {
-    setStepSlug,
-    setFields,
-    setError,
-    mergeServices,
-    business,
-    services,
-  } = useJourneyStore();
+  const { mergeFields, setError, mergeServices, business, services } =
+    useJourneyStore();
 
   const [submitted, setSubmitted] = useState<SubmittedPayload | null>(null);
 
@@ -79,6 +72,7 @@ export function useJourneyNavigation({
 
     const path = fullUrl.startsWith("/") ? fullUrl : `/${fullUrl}`;
     window.history.pushState(null, "", path);
+    dispatchNavigate();
   }
 
   async function validateCurrentStep(): Promise<boolean> {
@@ -96,7 +90,7 @@ export function useJourneyNavigation({
     }
 
     setError({});
-    setFields(getValues());
+    mergeFields(getValues());
     return true;
   }
 
@@ -119,26 +113,23 @@ export function useJourneyNavigation({
         return;
       }
 
-      setStepSlug(options.targetSlug);
       redirectTo(options.targetSlug);
       return;
     }
 
     if (options.type === "navigation") {
-      setStepSlug(options.targetSlug);
       redirectTo(options.targetSlug);
       return;
     }
 
     const nextStep = steps[currentStepIndex + 1];
     if (nextStep) {
-      setStepSlug(nextStep.slug);
       redirectTo(nextStep.slug);
       return;
     }
 
     handleSubmit((values) => {
-      setFields(values);
+      mergeFields(values);
       setError({});
       setSubmitted({ fields: values, error: {}, business, services });
     })();
@@ -148,14 +139,12 @@ export function useJourneyNavigation({
     if (!currentStep?.backStepSlug) return;
     const backStepSlug = currentStep.backStepSlug;
 
-    setFields(getValues());
+    mergeFields(getValues());
 
     if (backStepSlug === "/") {
-      setStepSlug(steps[0].slug);
       redirectTo("/");
       return;
     }
-    setStepSlug(backStepSlug);
     redirectTo(backStepSlug);
   }
 

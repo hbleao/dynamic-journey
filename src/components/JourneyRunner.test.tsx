@@ -74,7 +74,6 @@ describe("JourneyRunner (integration)", () => {
 
     await user.click(link);
 
-    expect(journeyStore.getState().stepSlug).toBe("cpf");
     expect(window.location.pathname).toBe("/");
   });
 
@@ -137,7 +136,6 @@ describe("JourneyRunner (integration)", () => {
     await user.click(screen.getByRole("button", { name: "Submit" }));
 
     expect(journeyStore.getState().services).toHaveProperty("eligibility");
-    expect(journeyStore.getState().stepSlug).toBe("next");
     expect(window.location.pathname).toBe("/next");
   });
 

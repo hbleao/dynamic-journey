@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import type { NavigationElementType } from "@/components/elementRegistry";
+import { useCurrentPathname } from "@/hooks/useCurrentPathname";
 import { useJourneyStore } from "@/store/useJourneyStore";
 import type { JourneyDefinition } from "@/validation/schemaValidation/journey.schema";
 
@@ -12,11 +13,19 @@ export function useJourneySteps(journey: JourneyDefinition) {
   const steps = journey.steps;
   const stepCount = steps.length;
 
-  const { stepSlug, setStepSlug, mergeBusiness } = useJourneyStore();
+  const { mergeBusiness } = useJourneyStore();
+
+  const pathname = useCurrentPathname();
 
   const stepSlugToIndex = new Map<string, number>(
     steps.map((step, i) => [step.slug, i]),
   );
+
+  const slugFromPath = pathname === "/" ? "" : pathname.replace(/^\//, "").split("/")[0];
+  const stepSlug =
+    slugFromPath && stepSlugToIndex.has(slugFromPath)
+      ? slugFromPath
+      : (steps[0]?.slug ?? "");
 
   const currentStep: JourneyStep | null =
     stepSlug && stepCount > 0
@@ -33,13 +42,6 @@ export function useJourneySteps(journey: JourneyDefinition) {
     (e): e is NavigationElementType => e.type === "NAVIGATION",
   );
 
-  function syncInitialStep() {
-    if (stepCount === 0) return;
-    if (!stepSlug || !stepSlugToIndex.has(stepSlug)) {
-      setStepSlug(steps[0].slug);
-    }
-  }
-
   function syncBusiness() {
     mergeBusiness({
       journeyId: journey.id,
@@ -48,7 +50,6 @@ export function useJourneySteps(journey: JourneyDefinition) {
     });
   }
 
-  useEffect(syncInitialStep, [stepCount, stepSlug, steps, setStepSlug]);
   useEffect(syncBusiness, [journey.id, journey.slug, currentStep?.slug, mergeBusiness]);
 
   return {
