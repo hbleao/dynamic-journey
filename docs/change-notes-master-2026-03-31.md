@@ -1,12 +1,12 @@
 # Change Notes
 
-- Gerado em: 31/03/2026, 10:05:21
+- Gerado em: 31/03/2026, 14:00:50
 - Faixa analisada: `origin/master..HEAD`
 - Total de commits: 1
 - Commits convencionais: 1
 - Commits ignorados: 0
 
-## Features
+## Refatorações
 
-- add snipet do analitycs (`3e947d3`)
+- **store**: remove stepSlug do store e usa URL como fonte de verdade (`085fdc0`)
 
