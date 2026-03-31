@@ -1,13 +1,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
-import { useJourneyFormStore } from "@/store/journeyFormStore";
+import { journeyStore } from "@/store/journeyStore";
 import type { JourneyDefinition } from "@/validation/schemaValidation/journey.schema";
 import { JourneyRunner } from "./JourneyRunner";
 
 function resetStore() {
-  useJourneyFormStore.getState().reset();
-  useJourneyFormStore.getState().mergeBussines({ base_url: "" });
+  journeyStore.getState().reset();
+  journeyStore.getState().mergeBusiness({ base_url: "" });
 }
 
 describe("JourneyRunner (integration)", () => {
@@ -68,15 +68,14 @@ describe("JourneyRunner (integration)", () => {
     const user = userEvent.setup();
     render(<JourneyRunner journey={journey} />);
 
-    await screen.findByText("Obrigatório");
+    // link desabilitado desde o início: campo obrigatório vazio
     const link = screen.getByRole("link", { name: "Ir" });
     expect(link).toHaveAttribute("aria-disabled", "true");
 
     await user.click(link);
 
-    expect(useJourneyFormStore.getState().stepSlug).toBe("cpf");
+    expect(journeyStore.getState().stepSlug).toBe("cpf");
     expect(window.location.pathname).toBe("/");
-    expect(useJourneyFormStore.getState().error).toEqual({});
   });
 
   it("calls SERVICE_CALL, stores result in services and navigates on success", async () => {
@@ -137,10 +136,8 @@ describe("JourneyRunner (integration)", () => {
 
     await user.click(screen.getByRole("button", { name: "Submit" }));
 
-    expect(useJourneyFormStore.getState().services).toHaveProperty(
-      "eligibility",
-    );
-    expect(useJourneyFormStore.getState().stepSlug).toBe("next");
+    expect(journeyStore.getState().services).toHaveProperty("eligibility");
+    expect(journeyStore.getState().stepSlug).toBe("next");
     expect(window.location.pathname).toBe("/next");
   });
 

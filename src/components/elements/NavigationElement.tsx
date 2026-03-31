@@ -10,19 +10,19 @@ type NavigationElementType = Extract<JourneyElement, { type: "NAVIGATION" }>;
 type NavigationElementProps = {
   element: NavigationElementType;
   onNavigate: (stepSlug: string) => void;
-  bussines: Record<string, unknown>;
+  business: Record<string, unknown>;
   canProceed: boolean;
 };
 
 export function NavigationElement({
   element,
   onNavigate,
-  bussines,
+  business,
   canProceed,
 }: NavigationElementProps) {
   const url = element.config.url?.trim() ?? "";
   const baseUrl =
-    typeof bussines.base_url === "string" ? bussines.base_url : "";
+    typeof business.base_url === "string" ? business.base_url : "";
   const href = joinPaths(baseUrl, url);
   const ui = element.config.ui;
   const hardDisabled = ui?.disabled === true;

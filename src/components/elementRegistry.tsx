@@ -1,6 +1,7 @@
 "use client";
 
 import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
+import type { GoNextOptions } from "@/hooks/useJourneyNavigation";
 import type { JourneyDefinition } from "@/validation/schemaValidation/journey.schema";
 import { CheckboxElement } from "./elements/CheckboxElement";
 import { CpfInputElement } from "./elements/CpfInputElement";
@@ -23,84 +24,49 @@ export type ElementRenderContext = {
   register: UseFormRegister<FormValues>;
   control: Control<FormValues>;
   errors: FieldErrors<FormValues>;
-  navigateToStepSlug: (stepSlug: string) => void;
-  callService: (service: string, targetStepOnSuccess: string) => void;
-  bussines: Record<string, unknown>;
+  goNext: (options: GoNextOptions) => Promise<void>;
+  business: Record<string, unknown>;
   canProceed: boolean;
+};
+
+type ElementRenderer<T extends JourneyElement = JourneyElement> = (
+  element: T,
+  ctx: ElementRenderContext,
+) => React.ReactNode;
+
+const renderers: {
+  [K in JourneyElement["type"]]: ElementRenderer<Extract<JourneyElement, { type: K }>>;
+} = {
+  TITLE: (element) => <TitleElement element={element} />,
+  PARAGRAPH: (element) => <ParagraphElement element={element} />,
+  TEXT_INPUT: (element, ctx) => <TextInputElement element={element} control={ctx.control} />,
+  CPF_INPUT: (element, ctx) => <CpfInputElement element={element} control={ctx.control} />,
+  RADIO: (element, ctx) => <RadioElement element={element} register={ctx.register} errors={ctx.errors} />,
+  SELECT: (element, ctx) => <SelectElement element={element} register={ctx.register} errors={ctx.errors} />,
+  CHECKBOX: (element, ctx) => <CheckboxElement element={element} register={ctx.register} errors={ctx.errors} />,
+  SERVICE_CALL: (element, ctx) => (
+    <ServiceCallElement
+      element={element}
+      canProceed={ctx.canProceed}
+      onCall={(serviceName, targetSlug) =>
+        ctx.goNext({ type: "service", serviceName, targetSlug })
+      }
+    />
+  ),
+  NAVIGATION: (element, ctx) => (
+    <NavigationElement
+      element={element}
+      onNavigate={(targetSlug) => ctx.goNext({ type: "navigation", targetSlug })}
+      business={ctx.business}
+      canProceed={ctx.canProceed}
+    />
+  ),
 };
 
 export function renderJourneyElement(
   element: JourneyElement,
   ctx: ElementRenderContext,
 ) {
-  if (element.type === "TITLE") {
-    return <TitleElement element={element} />;
-  }
-
-  if (element.type === "PARAGRAPH") {
-    return <ParagraphElement element={element} />;
-  }
-
-  if (element.type === "TEXT_INPUT") {
-    return <TextInputElement element={element} control={ctx.control} />;
-  }
-
-  if (element.type === "CPF_INPUT") {
-    return <CpfInputElement element={element} control={ctx.control} />;
-  }
-
-  if (element.type === "RADIO") {
-    return (
-      <RadioElement
-        element={element}
-        register={ctx.register}
-        errors={ctx.errors}
-      />
-    );
-  }
-
-  if (element.type === "SELECT") {
-    return (
-      <SelectElement
-        element={element}
-        register={ctx.register}
-        errors={ctx.errors}
-      />
-    );
-  }
-
-  if (element.type === "CHECKBOX") {
-    return (
-      <CheckboxElement
-        element={element}
-        register={ctx.register}
-        errors={ctx.errors}
-      />
-    );
-  }
-
-  if (element.type === "SERVICE_CALL") {
-    return (
-      <ServiceCallElement
-        element={element}
-        canProceed={ctx.canProceed}
-        onCall={(service, targetStepOnSuccess) =>
-          ctx.callService(service, targetStepOnSuccess)
-        }
-      />
-    );
-  }
-
-  if (element.type === "NAVIGATION") {
-    return (
-      <NavigationElement
-        element={element}
-        onNavigate={ctx.navigateToStepSlug}
-        bussines={ctx.bussines}
-        canProceed={ctx.canProceed}
-      />
-    );
-  }
-
-  return null;
+  const renderer = renderers[element.type] as ElementRenderer;
+  return renderer(element, ctx) ?? null;
 }

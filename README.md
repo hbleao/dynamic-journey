@@ -149,12 +149,18 @@ src/
     elements/
       Button|Link|Input|Typography/  # componentes base de UI (SCSS)
       *Element.tsx                  # elementos do flow (adapters)
+  hooks/
+    useJourneyRunnerController.ts  # compõe os hooks abaixo (ponto de entrada)
+    useJourneySteps.ts             # gerenciamento de steps e slug
+    useJourneyForm.ts              # schema RHF, prefill e canProceed
+    useJourneyNavigation.ts        # navegação, validação e SERVICE_CALL
   mock/
     sampleJourney.ts         # jornada de exemplo (parseada pelo Zod)
   services/
     serviceRegistry.ts       # registry de serviços (SERVICE_CALL)
   store/
-    journeyFormStore.ts      # Zustand store do runner
+    journeyStore.ts          # estado Zustand (getState / subscribe)
+    useJourneyStore.ts       # hook Zustand do runner
   utils/
     joinPaths.ts             # helper de URL/path
   validation/
@@ -167,15 +173,15 @@ src/
 ### JourneyDefinition (o “JSON da jornada”)
 Uma jornada tem `id/name/slug` e uma lista de `steps`. Cada step possui `slug` e uma lista de `elements`.
 
-- Schema: [journeySchema.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/schemaValidation/journeySchema.ts)
-- Step schema: [journeyStepSchema.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/schemaValidation/journeyStepSchema.ts)
-- Element union (discriminatedUnion por `type`): [journeyElementSchema.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/schemaValidation/journeyElementSchema.ts)
-- Exemplo: [sampleJourney.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/mock/sampleJourney.ts)
+- Schema: [journeySchema.ts](file:///home/henrique/dev/dynamic-journey/src/validation/schemaValidation/journeySchema.ts)
+- Step schema: [journeyStepSchema.ts](file:///home/henrique/dev/dynamic-journey/src/validation/schemaValidation/journeyStepSchema.ts)
+- Element union (discriminatedUnion por `type`): [journeyElementSchema.ts](file:///home/henrique/dev/dynamic-journey/src/validation/schemaValidation/journeyElementSchema.ts)
+- Exemplo: [sampleJourney.ts](file:///home/henrique/dev/dynamic-journey/src/mock/sampleJourney.ts)
 
 ### Renderização dinâmica (elementRegistry)
 A UI é montada percorrendo `step.elements` e renderizando cada elemento baseado no campo `type`.
 
-- Registry: [elementRegistry.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/elementRegistry.tsx)
+- Registry: [elementRegistry.tsx](file:///home/henrique/dev/dynamic-journey/src/components/elementRegistry.tsx)
 
 Fluxo simplificado:
 
@@ -186,12 +192,13 @@ JourneyRunner → renderJourneyElement(element, ctx) → componente do elemento
 ### Store (Zustand)
 O runner persiste dados em store para reuso e debug:
 - `stepSlug`: step atual
-- `fieds`: valores do formulário (observação: o nome está como “fieds”)
+- `fields`: valores do formulário
 - `error`: erros “de alto nível” (ex: erro de service)
-- `bussines`: contexto/metadata (ex: base_url, journeyId, stepSlug)
+- `business`: contexto/metadata (ex: base_url, journeyId, stepSlug)
 - `services`: resultados de SERVICE_CALL
 
-Store: [journeyFormStore.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/store/journeyFormStore.ts)
+Estado: [journeyStore.ts](file:///home/henrique/dev/dynamic-journey/src/store/journeyStore.ts)  
+Hook: [useJourneyStore.ts](file:///home/henrique/dev/dynamic-journey/src/store/useJourneyStore.ts)
 
 ## Validação
 
@@ -214,21 +221,21 @@ export const sampleJourney = journeySchema.parse({
 ### 2) Validação do formulário (gerada a partir da jornada)
 O schema do formulário é gerado dinamicamente com base nos elementos do step (ex.: `TEXT_INPUT.required`).
 
-- Builder: [buildJourneyFormSchema.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/validations/buildJourneyFormSchema.ts)
+- Builder: [buildJourneyFormSchema.ts](file:///home/henrique/dev/dynamic-journey/src/validation/validations/buildJourneyFormSchema.ts)
 
 Ele retorna:
 - `schema`: um Zod object “flat” (cada field é uma key)
 - `stepFields`: mapeamento `{ [stepId]: string[] }` com os nomes dos campos do step
 
-O `JourneyRunner` cria o RHF com `zodResolver(schema)`:
-- [JourneyRunner.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/JourneyRunner.tsx)
+O schema é consumido por `useJourneyForm`, que cria o RHF com `zodResolver(schema)`:
+- [useJourneyForm.ts](file:///home/henrique/dev/dynamic-journey/src/hooks/useJourneyForm.ts)
 
 ## Contexto e roteamento interno
 
 O runner mantém o step atual em `stepSlug` (Zustand) e também atualiza a URL via `window.history.pushState`.
-Se existir `bussines.base_url`, ela é usada como prefixo (útil quando o app roda sob um path).
+Se existir `business.base_url`, ela é usada como prefixo (útil quando o app roda sob um path).
 
-Helper: [joinPaths.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/utils/joinPaths.ts)
+Helper: [joinPaths.ts](file:///home/henrique/dev/dynamic-journey/src/utils/joinPaths.ts)
 
 ## Actions: NAVIGATION e SERVICE_CALL
 
@@ -237,17 +244,17 @@ As actions são elementos que disparam efeitos:
 ### NAVIGATION
 Objetivo: navegar para um step (slug/url), respeitando validação do step atual.
 
-- Elemento: [NavigationElement.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/elements/NavigationElement.tsx)
-- Schema: [navigationElementSchema.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/schemaValidation/navigationElementSchema.ts)
-- Execução: `navigateToStepSlug` dentro do runner: [JourneyRunner.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/JourneyRunner.tsx)
+- Elemento: [NavigationElement.tsx](file:///home/henrique/dev/dynamic-journey/src/components/elements/NavigationElement.tsx)
+- Schema: [navigationElementSchema.ts](file:///home/henrique/dev/dynamic-journey/src/validation/schemaValidation/navigationElementSchema.ts)
+- Execução: `goNext` em [useJourneyNavigation.ts](file:///home/henrique/dev/dynamic-journey/src/hooks/useJourneyNavigation.ts)
 
 ### SERVICE_CALL
 Objetivo: chamar um serviço registrado e, em sucesso, navegar para um step alvo.
 
-- Elemento: [ServiceCallElement.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/elements/ServiceCallElement.tsx)
-- Schema: [serviceCallElementSchema.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/schemaValidation/serviceCallElementSchema.ts)
-- Execução: `callServiceAndNavigate` no runner: [JourneyRunner.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/JourneyRunner.tsx)
-- Registry de serviços: [serviceRegistry.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/services/serviceRegistry.ts)
+- Elemento: [ServiceCallElement.tsx](file:///home/henrique/dev/dynamic-journey/src/components/elements/ServiceCallElement.tsx)
+- Schema: [serviceCallElementSchema.ts](file:///home/henrique/dev/dynamic-journey/src/validation/schemaValidation/serviceCallElementSchema.ts)
+- Execução: `goNext` com `type: "service"` em [useJourneyNavigation.ts](file:///home/henrique/dev/dynamic-journey/src/hooks/useJourneyNavigation.ts)
+- Registry de serviços: [serviceRegistry.ts](file:///home/henrique/dev/dynamic-journey/src/services/serviceRegistry.ts)
 
 Exemplo de implementação de um novo serviço:
 
@@ -265,22 +272,21 @@ const handlers: Record<string, ServiceHandler> = {
 
 ## Bloqueio de ações quando o step está inválido (A1)
 
-O runner calcula `canProceed` para o step atual usando:
+O hook `useJourneyForm` calcula `canProceed` para o step atual usando:
 - `mode: "onChange"` e `reValidateMode: "onChange"` no RHF
-- `trigger(currentStepFields)` ao entrar no step para popular `formState`
-- `getFieldState(field, formState).invalid` para decidir se pode prosseguir
+- `schema.safeParse(watchedValues)` para checar erros nos campos do step atual
 
-Trecho-chave: [JourneyRunner.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/JourneyRunner.tsx)
+Trecho-chave: [useJourneyForm.ts](file:///home/henrique/dev/dynamic-journey/src/hooks/useJourneyForm.ts)
 
 Esse `canProceed` é passado para `NAVIGATION` e `SERVICE_CALL` via `ElementRenderContext` no registry:
-- [elementRegistry.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/elementRegistry.tsx)
+- [elementRegistry.tsx](file:///home/henrique/dev/dynamic-journey/src/components/elementRegistry.tsx)
 
 E então os elementos aplicam `disabled`/`aria-disabled` quando `!canProceed`.
 
 ## Prefill de inputs via services (`defaultValueFrom`)
 
 Para pré-preencher um input com base no resultado de um `SERVICE_CALL`, use `defaultValueFrom`.
-O runner resolve o valor a partir do store `services[serviceName]` e aplica no campo **apenas se o usuário ainda não preencheu**.
+O hook `useJourneyForm` resolve o valor a partir do store `services[serviceName]` e aplica no campo **apenas se o usuário ainda não preencheu**.
 
 Formato:
 
@@ -300,7 +306,7 @@ Também existe `defaultValue` (string literal) para defaults fixos.
 Alguns elementos aceitam um bloco `ui` no `config` para repassar props de UI (whitelist), sem permitir “spread” de props arbitrárias do JSON.
 
 Schemas:
-- [elementUiSchemas.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/schemaValidation/elementUiSchemas.ts)
+- [elementUiSchemas.ts](file:///home/henrique/dev/dynamic-journey/src/validation/schemaValidation/elementUiSchemas.ts)
 
 Exemplo (SERVICE_CALL usando Button):
 
@@ -324,13 +330,13 @@ Exemplo (SERVICE_CALL usando Button):
 ## Como adicionar um novo tipo de elemento
 
 1) Criar um schema em `src/validation/schemaValidation/*ElementSchema.ts`  
-2) Registrar o schema no `discriminatedUnion` em [journeyElementSchema.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/schemaValidation/journeyElementSchema.ts)  
+2) Registrar o schema no `discriminatedUnion` em [journeyElementSchema.ts](file:///home/henrique/dev/dynamic-journey/src/validation/schemaValidation/journeyElementSchema.ts)  
 3) Criar um componente em `src/components/elements/*Element.tsx`  
-4) Renderizar no registry: [elementRegistry.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/elementRegistry.tsx)  
-5) Se o elemento cria/usa um field de formulário, adicionar regra em [buildJourneyFormSchema.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/validation/validations/buildJourneyFormSchema.ts)
+4) Renderizar no registry: [elementRegistry.tsx](file:///home/henrique/dev/dynamic-journey/src/components/elementRegistry.tsx)  
+5) Se o elemento cria/usa um field de formulário, adicionar regra em [buildJourneyFormSchema.ts](file:///home/henrique/dev/dynamic-journey/src/validation/validations/buildJourneyFormSchema.ts)
 
 ## Testes
 
-- Integração do runner (validação + actions): [JourneyRunner.test.tsx](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/components/JourneyRunner.test.tsx)
-- Service registry: [serviceRegistry.test.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/services/serviceRegistry.test.ts)
-- Setup do ambiente de teste: [setup.ts](file:///Users/henriquebragaleao/Dev/dynamic-journey/src/test/setup.ts)
+- Integração do runner (validação + actions): [JourneyRunner.test.tsx](file:///home/henrique/dev/dynamic-journey/src/components/JourneyRunner.test.tsx)
+- Service registry: [serviceRegistry.test.ts](file:///home/henrique/dev/dynamic-journey/src/services/serviceRegistry.test.ts)
+- Setup do ambiente de teste: [setup.ts](file:///home/henrique/dev/dynamic-journey/src/test/setup.ts)
