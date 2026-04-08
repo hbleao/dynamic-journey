@@ -1,11 +1,11 @@
 import { JourneyRunner } from "../components/JourneyRunner";
-import { sampleJourney } from "../mock/sampleJourney";
+import { consultaCreditoJourney } from "../mock/consultaCreditoJourney";
 import styles from "./page.module.css";
 
 export default function Home() {
   return (
     <div className={styles.page}>
-      <JourneyRunner journey={sampleJourney} />
+      <JourneyRunner journey={consultaCreditoJourney} />
     </div>
   );
 }

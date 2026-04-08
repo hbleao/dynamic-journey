@@ -5,7 +5,14 @@ export type ServiceResult =
 type ServiceHandler = (input: unknown) => Promise<ServiceResult>;
 
 const eligibility: ServiceHandler = async (input: unknown) => {
-  return { success: true, data: { eligible: true, input } };
+  return {
+    success: true,
+    data: {
+      eligible: true,
+      creditScore: 750,
+      input,
+    },
+  };
 };
 
 const handlers: Record<string, ServiceHandler> = {
