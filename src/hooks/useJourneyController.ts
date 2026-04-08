@@ -22,7 +22,7 @@ export function useJourneyController(journey: JourneyDefinition) {
     getFieldState: form.getFieldState,
   });
 
-  const { error: storedError, business } = useJourneyStore();
+  const { error: storedError, business, hasHydrated } = useJourneyStore();
   const storedErrorEntries = Object.entries(storedError).filter(
     ([, v]) => !!v,
   ) as Array<[string, string]>;
@@ -38,7 +38,8 @@ export function useJourneyController(journey: JourneyDefinition) {
     control: form.control,
     formState: form.formState,
     getValues: form.getValues,
-    canProceed: form.canProceed,
+    // Botão bloqueado até store rehidratar do sessionStorage
+    canProceed: hasHydrated && form.canProceed,
     business,
     storedError,
     storedErrorEntries,
@@ -46,5 +47,6 @@ export function useJourneyController(journey: JourneyDefinition) {
     goPrev: navigation.goPrev,
     submitted: navigation.submitted,
     setSubmitted: navigation.setSubmitted,
+    hasHydrated,
   };
 }

@@ -67,6 +67,7 @@ export function useJourneyForm(
     getValues,
     getFieldState,
     setValue,
+    reset,
     formState,
     watch,
   } = useForm<FormValues>({
@@ -75,6 +76,26 @@ export function useJourneyForm(
     mode: "onChange",
     reValidateMode: "onChange",
   });
+
+  // Sincroniza o formulário com os fields do store após rehidratação do sessionStorage.
+  // Dois cenários: (1) store já estava hidratado quando o componente montou,
+  // (2) store hidrata depois do mount (assíncrono).
+  useEffect(() => {
+    const currentState = journeyStore.getState();
+    if (currentState._hasHydrated && Object.keys(currentState.fields).length > 0) {
+      // Cenário 1: já hidratado — reseta imediatamente
+      reset(currentState.fields as FormValues, { keepDirty: false, keepTouched: false });
+    }
+
+    // Cenário 2: aguarda hidratação
+    const unsub = journeyStore.subscribe((state, prev) => {
+      if (!prev._hasHydrated && state._hasHydrated) {
+        reset(state.fields as FormValues, { keepDirty: false, keepTouched: false });
+      }
+    });
+    return unsub;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentStepFields: string[] = currentStep
     ? (stepFields[currentStep.id] ?? [])

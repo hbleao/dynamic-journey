@@ -14,6 +14,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:run:mem": "NODE_OPTIONS=--max-old-space-size=4096 vitest run",
+    "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test",
     "changenotes": "node scripts/change-notes/generateChangeNotes.cjs",
     "changenotes:stdout": "node scripts/change-notes/generateChangeNotes.cjs --stdout",
     "changenotes:check": "node scripts/change-notes/verifyChangeNotes.cjs",

@@ -3,6 +3,7 @@
 import { journeyStore } from "./journeyStore";
 
 export function useJourneyStore() {
+  // Selectors reativos do Zustand
   const fields = journeyStore((s) => s.fields);
   const mergeFields = journeyStore((s) => s.mergeFields);
   const error = journeyStore((s) => s.error);
@@ -12,6 +13,9 @@ export function useJourneyStore() {
   const services = journeyStore((s) => s.services);
   const mergeServices = journeyStore((s) => s.mergeServices);
   const reset = journeyStore((s) => s.reset);
+  // Expõe o estado de hidratação diretamente do store
+  // O Zustand persist define _hasHydrated=true no onRehydrateStorage apenas no cliente
+  const hasHydrated = journeyStore((s) => s._hasHydrated);
 
   return {
     fields,
@@ -23,5 +27,6 @@ export function useJourneyStore() {
     services,
     mergeServices,
     reset,
+    hasHydrated,
   };
 }
